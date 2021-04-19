@@ -6,42 +6,123 @@ const priorities = ['None', 'Low', 'Medium', 'High', 'Urgent'];
 const statuses = ['None', 'None', 'Open', 'Pending', 'Resolved', 'Closed', 'Waiting on Customer', 'Waiting on Third Party'];
 
 document.body.classList.add('container');
+document.body.style.padding = '5px';
+document.body.style.maxWidth = '100vw';
+let main = createDomElement('div', document.body, [['class', 'row']]);
+let sidebar = createDomElement('div', main, [['class', 'col-1'], ['style', 'height:100vh; background:black']]);
+let content = createDomElement('div', main, [['class', 'col-11'], ['style', 'background:gray']])
 
-//pages
-let homePage = createDomElement('div', document.body, [['id', 'homePage'], ['class', 'row']]);
-let listTickets = createDomElement('div', document.body, [['id', 'listTickets'], ['class', 'row'], ['style', 'visibility:collapse;']]);
-let listContacts = createDomElement('div', document.body, [['id', 'listContacts'], ['class', 'row'], ['style', 'visibility:collapse;']]);
-let singleContact = createDomElement('div', document.body, [['id', 'singleContact'], ['class', 'row'], ['style', 'visibility:collapse;']]);
-let loading = createDomElement('div', document.body, [['class', 'row'], ['style', 'visibility:collapse;']])
+//sidebar
+let ul = createDomElement('ul', sidebar, [['class', 'nav nav-pills flex-column']]);
+let homeItem = createDomElement('li', ul, [['class', 'nav-item']]);
+let homeLink = createDomElement('a', homeItem, [['class', 'nav-link current'], ['href', '#homePage'], ['style', 'color:#FFFFFF']], [['onclick', () => renderHomePage()], ['textContent', 'DASHBOARD']]);
+let ticketsItem = createDomElement('li', ul, [['class', 'nav-item']]);
+let ticketsLink = createDomElement('a', ticketsItem, [['class', 'nav-link'], ['href', '#listTickets'], ['style', 'color:#FFFFFF']], [['onclick', () => renderTickets()], ['textContent', 'TICKETS']]);
+let contactsItem = createDomElement('li', ul, [['class', 'nav-item']]);
+let contactsLink = createDomElement('a', contactsItem, [['class', 'nav-link'], ['href', '#listContacts'], ['style', 'color:#FFFFFF']], [['onclick', () => renderContacts()], ['textContent', 'CONTACTS']]);
+let addContactItem = createDomElement('li', ul, [['class', 'nav-item']]);
+let addContactLink = createDomElement('a', addContactItem, [['class', 'nav-link'], ['href', '#singleContact'], ['style', 'color:#FFFFFF']], [['onclick', () => renderContact()], ['textContent', 'ADD CONTACT']]);
+
+//content
+let homePage = createDomElement('div', content, [['id', 'homePage'], ['class', 'row']]);
+let listTickets = createDomElement('div', content, [['id', 'listTickets'], ['class', 'row'], ['style', 'display:none;']]);
+let listContacts = createDomElement('div', content, [['id', 'listContacts'], ['class', 'row'], ['style', 'display:none;']]);
+let singleContact = createDomElement('div', content, [['id', 'singleContact'], ['class', 'row'], ['style', 'display:none;']]);
+let loading = createDomElement('div', content, [['class', 'row'], ['style', 'display:none;']])
+
+renderHomePage();
 
 //homepage
-let emptyDiv = createDomElement('div', homePage, [['class', 'col-md-3']]);
-let navDivTickets = createDomElement('div', homePage, [['class', 'col-md-2']]);
-let tickets = createDomElement('button', navDivTickets, [['class', 'btn btn-primary']], [['onclick', renderTickets], ['textContent', 'Show tickets!']]);
-let navDivContacts = createDomElement('div', homePage, [['class', 'col-md-2']]);
-let contacts = createDomElement('button', navDivContacts, [['class', 'btn btn-primary']], [['onclick', renderContacts], ['textContent', 'Show contacts!']]);
-let navDivAdd = createDomElement('div', homePage, [['class', 'col-md-2']]);
-let addContact = createDomElement('button', navDivAdd, [['class', 'btn btn-primary']], [['onclick', () => renderContact()], ['textContent', 'Add new contact!']]);
+function renderHomePage() {
+    listTickets.style.display = 'none';
+    ticketsLink.classList.remove('current');
+    listContacts.style.display = 'none';
+    contactsLink.classList.remove('current');
+    singleContact.style.display = 'none';
+    addContactLink.classList.remove('current');
+    loading.style.display = 'none';
+    homePage.style.display = 'flex';
+    homeLink.classList.add('current');
+    displayHomePage();
+}
+
+function displayHomePage() {
+    while(homePage.firstChild) {
+        homePage.removeChild(homePage.lastChild);
+    }
+    getData(urlTickets + '?include=description')
+        .then((data) => {
+            let unresolved = data.filter((val) => val.status !== 5);
+            let open = data.filter((val) => val.status === 2);
+            let overdue = data.filter((val) => {
+                let dueDate = new Date(val.due_by);
+                let currentDate = new Date();
+                return dueDate.getTime() < currentDate.getTime() && val.status === 2;
+            });
+            let onHold = data.filter((val) => val.status === 3 || val.status === 6 || val.status === 7);
+            let col1 = createDomElement('div', homePage, [['class', 'col-6 p-5']]);
+            createDomElement('div', col1, [['class', 'card text-primary'], ['style', 'font-size:xx-large;text-align:center;background:#f5f7f9;']],
+                [['innerHTML', '<p>Unresolved</p><p>' + unresolved.length + '</p>'], ['onclick', () => renderTickets(unresolved, ' Unresolved')]]);
+            let col2 = createDomElement('div', homePage, [['class', 'col-6  p-5']]);
+            createDomElement('div', col2, [['class', 'card text-info'], ['style', 'font-size:xx-large;text-align:center;background:#f5f7f9;']],
+             [['innerHTML', '<p>Open</p><p>' + open.length + '</p>'], ['onclick', () => renderTickets(open, ' Open')]]);
+            let col3 = createDomElement('div', homePage, [['class', 'col-6 p-5']]);
+            createDomElement('div', col3, [['class', 'card text-danger'], ['style', 'font-size:xx-large;text-align:center;background:#f5f7f9;']],
+             [['innerHTML', '<p>Overdue</p><p>' + overdue.length + '</p>'], ['onclick', () => renderTickets(overdue, ' Overdue')]]);
+            let col4 = createDomElement('div', homePage, [['class', 'col-6 p-5']]);
+            createDomElement('div', col4, [['class', 'card text-warning'], ['style', 'font-size:xx-large;text-align:center;background:#f5f7f9;']],
+             [['innerHTML', '<p>On Hold</p><p>' + onHold.length + '</p>'], ['onclick', () => renderTickets(onHold, ' On Hold')]]);
+
+        })
+        .catch((err) => console.log(err))
+}
+// let emptyDiv = createDomElement('div', homePage, [['class', 'col-md-3']]);
+// let navDivTickets = createDomElement('div', homePage, [['class', 'col-md-2']]);
+// let tickets = createDomElement('button', navDivTickets, [['class', 'btn btn-primary']], [['onclick', renderTickets], ['textContent', 'Show tickets!']]);
+// let navDivContacts = createDomElement('div', homePage, [['class', 'col-md-2']]);
+// let contacts = createDomElement('button', navDivContacts, [['class', 'btn btn-primary']], [['onclick', renderContacts], ['textContent', 'Show contacts!']]);
+// let navDivAdd = createDomElement('div', homePage, [['class', 'col-md-2']]);
+// let addContact = createDomElement('button', navDivAdd, [['class', 'btn btn-primary']], [['onclick', () => renderContact()], ['textContent', 'Add new contact!']]);
 
 //loading
-let loaderDiv = createDomElement('div', loading, [['class',"d-flex justify-content-center"]]);
-let spinnerBorder = createDomElement('div', loaderDiv, [['class',"spinner-border"], ['role',"status"]]);
-createDomElement('span', spinnerBorder, [['class',"sr-only"]], [['textContent', 'Loading...']]);
+let loaderDiv = createDomElement('div', loading, [['class', "d-flex justify-content-center"], ['style', 'height:50vh']]);
+let spinnerBorder = createDomElement('div', loaderDiv, [['class', "spinner-border"], ['role', "status"]]);
+createDomElement('span', spinnerBorder, [['class', "sr-only"]], [['textContent', 'Loading...']]);
 
 //list all tickets
-function renderTickets() {
-    listTickets.style.visibility = 'visible';
-    listContacts.style.visibility = 'collapse';
-    singleContact.style.visibility = 'collapse';    
-    loading.style.visibility = 'collapse';
-    listAllTickets();
+function renderTickets(data = null, filterName = '') {
+    listTickets.style.display = 'contents';
+    ticketsLink.classList.add('current');
+    listContacts.style.display = 'none';
+    contactsLink.classList.remove('current');
+    singleContact.style.display = 'none';
+    addContactLink.classList.remove('current');
+    loading.style.display = 'none';
+    homePage.style.display = 'none';
+    homeLink.classList.remove('current');
+    listAllTickets(data, filterName);
 }
 
 
-function listAllTickets() {
+function listAllTickets(data = null, filterName = '') {
     while (listTickets.firstChild) {
         listTickets.removeChild(listTickets.lastChild);
     }
+    if (data === null) {
+        createDomElement('p', listTickets, [['class', 'col-12']], [['textContent', 'All Tickets:']])
+        getData(urlTickets + '?include=description')
+            .then((ticketsData) => {
+                processTicketsData(ticketsData);
+            })
+            .catch(err => console.log(err))
+    }
+    else {
+        createDomElement('p', listTickets, [['class', 'col-12']], [['textContent', 'Tickets filtered by: ' + filterName]])
+        processTicketsData(data);
+    }
+}
+
+function processTicketsData(ticketsData) {
     let tableT = createDomElement('table', listTickets, [['class', 'table']]);
     let theadT = createDomElement('thead', tableT);
     let tHeadRowT = createDomElement('tr', theadT);
@@ -51,49 +132,50 @@ function listAllTickets() {
     })
 
     let tbodyT = createDomElement('tbody', tableT);
-    getData(urlTickets + '?include=description')
-        .then((ticketsData) => {
-            ticketsData.forEach((val) => {
-                let tbodyrowT = createDomElement('tr', tbodyT);
-                getData(urlContacts + "/" + val.requester_id)
-                    .then((data) => {
-                        let rowValues = [data.name, val.subject, val.description_text];
-                        rowValues.forEach((entry) => {
-                            createDomElement('td', tbodyrowT, [], [['textContent', entry]]);
-                        })
-                        let priorityCell = createDomElement('td', tbodyrowT);
-                        let prioritySelect = createDomElement('select', priorityCell, [], [['onchange', (event) => updatePriority(event, val.id)]]);
-                        for (let j = 1; j < priorities.length; j++) {
-                            if (j === val.priority) {
-                                createDomElement('option', prioritySelect, [['selected', 'selected']], [['textContent', priorities[j]]]);
-                            }
-                            else {
-                                createDomElement('option', prioritySelect, [], [['textContent', priorities[j]]]);
-                            }
-                        }
-                        let statusCell = createDomElement('td', tbodyrowT);
-                        let statusSelect = createDomElement('select', statusCell, [], [['onchange', (event) => updateStatus(event, val.id)]]);
-                        for (let j = 2; j < statuses.length; j++) {
-                            if (j === val.status) {
-                                createDomElement('option', statusSelect, [['selected', 'selected']], [['textContent', statuses[j]]]);
-                            }
-                            else {
-                                createDomElement('option', statusSelect, [], [['textContent', statuses[j]]]);
-                            }
-                        }
-                    })
-                    .catch(err => console.log(err))
-            });
-        })
-        .catch(err => console.log(err))
+    ticketsData.forEach((val) => {
+        let tbodyrowT = createDomElement('tr', tbodyT);
+        getData(urlContacts + "/" + val.requester_id)
+            .then((data) => {
+                let rowValues = [data.name, val.subject, val.description_text];
+                rowValues.forEach((entry) => {
+                    createDomElement('td', tbodyrowT, [], [['textContent', entry]]);
+                })
+                let priorityCell = createDomElement('td', tbodyrowT);
+                let prioritySelect = createDomElement('select', priorityCell, [], [['onchange', (event) => updatePriority(event, val.id)]]);
+                for (let j = 1; j < priorities.length; j++) {
+                    if (j === val.priority) {
+                        createDomElement('option', prioritySelect, [['selected', 'selected']], [['textContent', priorities[j]]]);
+                    }
+                    else {
+                        createDomElement('option', prioritySelect, [], [['textContent', priorities[j]]]);
+                    }
+                }
+                let statusCell = createDomElement('td', tbodyrowT);
+                let statusSelect = createDomElement('select', statusCell, [], [['onchange', (event) => updateStatus(event, val.id)]]);
+                for (let j = 2; j < statuses.length; j++) {
+                    if (j === val.status) {
+                        createDomElement('option', statusSelect, [['selected', 'selected']], [['textContent', statuses[j]]]);
+                    }
+                    else {
+                        createDomElement('option', statusSelect, [], [['textContent', statuses[j]]]);
+                    }
+                }
+            })
+            .catch(err => console.log(err))
+    });
 }
 
 //list all contacts
 function renderContacts() {
-    listContacts.style.visibility = 'visible';
-    listTickets.style.visibility = 'collapse';
-    singleContact.style.visibility = 'collapse';
-    loading.style.visibility = 'collapse';
+    listContacts.style.display = 'contents';
+    listTickets.style.display = 'none';
+    singleContact.style.display = 'none';
+    loading.style.display = 'none';
+    ticketsLink.classList.remove('current');
+    contactsLink.classList.add('current');
+    addContactLink.classList.remove('current');    
+    homePage.style.display = 'none';
+    homeLink.classList.remove('current');
     listAllContacts();
 }
 
@@ -133,10 +215,15 @@ function listAllContacts() {
 
 //single contact info
 function renderContact(id = "") {
-    listContacts.style.visibility = 'collapse';
-    listTickets.style.visibility = 'collapse';
-    singleContact.style.visibility = 'visible';
-    loading.style.visibility = 'collapse';
+    listContacts.style.display = 'none';
+    listTickets.style.display = 'none';
+    singleContact.style.display = 'contents';
+    loading.style.display = 'none';
+    ticketsLink.classList.remove('current');
+    contactsLink.classList.remove('current');
+    addContactLink.classList.add('current');
+    homePage.style.display = 'none';
+    homeLink.classList.remove('current');
     editContact(id);
 }
 
@@ -168,7 +255,7 @@ function editContact(id = "") {
     })
     createDomElement('input', form, [['type', "submit"], ['class', "btn btn-primary"], ['value', 'submit']]);
 
-    
+
 }
 
 function submitContact(event, id) {
@@ -179,18 +266,18 @@ function submitContact(event, id) {
     data.job_title = formElements.job_title.value === '-' || formElements.job_title.value === '' ? null : formElements.job_title.value;
     data.address = formElements.address.value === '-' || formElements.address.value === '' ? null : formElements.address.value;
     data.email = formElements.email.value;
-    data.phone = formElements.phone.value === '-' || formElements.phone.value === ''? null : formElements.phone.value;
+    data.phone = formElements.phone.value === '-' || formElements.phone.value === '' ? null : formElements.phone.value;
     //data.facebook_id = formElements.facebook_id.value === '-' || formElements.facebook_id.value === ''? null : formElements.facebook_id.value;
-    data.twitter_id = formElements.twitter_id.value === '-' || formElements.twitter_id.value === ''? null : formElements.twitter_id.value;
+    data.twitter_id = formElements.twitter_id.value === '-' || formElements.twitter_id.value === '' ? null : formElements.twitter_id.value;
     if (id === '') {
         postData(urlContacts, data);
     }
     else {
         updateData(urlContacts + '/' + id, data);
     }
-    loading.style.visibility = 'visible';    
-    singleContact.style.visibility = 'collapse';
-    setTimeout(()=>renderContacts(), 5000);    
+    loading.style.display = 'contents';
+    singleContact.style.display = 'none';
+    setTimeout(() => renderContacts(), 5000);
 }
 
 
