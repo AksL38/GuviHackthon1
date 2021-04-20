@@ -5,23 +5,32 @@ const authorise = 'Basic ' + window.btoa(apiKey)
 const priorities = ['None', 'Low', 'Medium', 'High', 'Urgent'];
 const statuses = ['None', 'None', 'Open', 'Pending', 'Resolved', 'Closed', 'Waiting on Customer', 'Waiting on Third Party'];
 
-document.body.classList.add('container');
-document.body.style.padding = '5px';
-document.body.style.maxWidth = '100vw';
-let main = createDomElement('div', document.body, [['class', 'row']]);
-let sidebar = createDomElement('div', main, [['class', 'col-1'], ['style', 'height:100vh; background:black']]);
-let content = createDomElement('div', main, [['class', 'col-11'], ['style', 'background:gray']])
+//document.body.classList.add('container');
+// document.body.style.width = '100vw';
+// document.body.style.maxWidth = '2000px';
+// document.body.style.height = '100vh';
+// document.body.style.padding = '0px';
+// document.body.style.margin = '0px';
+
+let sidebar = createDomElement('div', document.body, [['class', 'sidebar']]);
+let container = createDomElement('div', document.body, [['class', 'container adjust-container']]);
+let main = createDomElement('div', container, [['class', 'row']], [['style', 'height:100%;background:gray;']]);
+let content = createDomElement('div', main, [['class', 'col-12'], ['style', 'background:gray;']])
 
 //sidebar
-let ul = createDomElement('ul', sidebar, [['class', 'nav nav-pills flex-column']]);
+let ul = createDomElement('ul', sidebar, [['class', 'nav flex-column']]);
 let homeItem = createDomElement('li', ul, [['class', 'nav-item']]);
-let homeLink = createDomElement('a', homeItem, [['class', 'nav-link current'], ['href', '#homePage'], ['style', 'color:#FFFFFF']], [['onclick', () => renderHomePage()], ['textContent', 'DASHBOARD']]);
+let homeLink = createDomElement('a', homeItem, [['class', 'nav-link current pt-5 pb-5'], ['href', '#homePage'], ['style', 'color:#FFFFFF;'], ['data-toggle',"tooltip"], ['data-placement',"right"], ['title', 'DASHBOARD']],
+ [['onclick', () => renderHomePage()], ['innerHTML', '<i class="fa fa-tachometer" aria-hidden="true"></i>']]);
 let ticketsItem = createDomElement('li', ul, [['class', 'nav-item']]);
-let ticketsLink = createDomElement('a', ticketsItem, [['class', 'nav-link'], ['href', '#listTickets'], ['style', 'color:#FFFFFF']], [['onclick', () => renderTickets()], ['textContent', 'TICKETS']]);
+let ticketsLink = createDomElement('a', ticketsItem, [['class', 'nav-link pb-2'], ['href', '#listTickets'], ['style', 'color:#FFFFFF;padding-top:100px'], ['data-toggle',"tooltip"], ['data-placement',"right"], ['title', 'TICKETS']],
+ [['onclick', () => renderTickets()], ['innerHTML', '<i class="fa fa-ticket" aria-hidden="true"></i>']]);
 let contactsItem = createDomElement('li', ul, [['class', 'nav-item']]);
-let contactsLink = createDomElement('a', contactsItem, [['class', 'nav-link'], ['href', '#listContacts'], ['style', 'color:#FFFFFF']], [['onclick', () => renderContacts()], ['textContent', 'CONTACTS']]);
+let contactsLink = createDomElement('a', contactsItem, [['class', 'nav-link pt-2 pb-2'], ['href', '#listContacts'], ['style', 'color:#FFFFFF'], ['data-toggle',"tooltip"], ['data-placement',"right"], ['title', 'CONTACTS']],
+ [['onclick', () => renderContacts()], ['innerHTML', '<i class="fa fa-address-book-o" aria-hidden="true"></i>']]);
 let addContactItem = createDomElement('li', ul, [['class', 'nav-item']]);
-let addContactLink = createDomElement('a', addContactItem, [['class', 'nav-link'], ['href', '#singleContact'], ['style', 'color:#FFFFFF']], [['onclick', () => renderContact()], ['textContent', 'ADD CONTACT']]);
+let addContactLink = createDomElement('a', addContactItem, [['class', 'nav-link pt-2 pb-2'], ['href', '#singleContact'], ['style', 'color:#FFFFFF'], ['data-toggle',"tooltip"], ['data-placement',"right"], ['title', 'ADD CONTACT']],
+ [['onclick', () => renderContact()], ['innerHTML', '<i class="fa fa-plus" aria-hidden="true"></i>']]);
 
 //content
 let homePage = createDomElement('div', content, [['id', 'homePage'], ['class', 'row']]);
@@ -60,32 +69,26 @@ function displayHomePage() {
                 return dueDate.getTime() < currentDate.getTime() && val.status === 2;
             });
             let onHold = data.filter((val) => val.status === 3 || val.status === 6 || val.status === 7);
-            let col1 = createDomElement('div', homePage, [['class', 'col-6 p-5']]);
-            createDomElement('div', col1, [['class', 'card text-primary'], ['style', 'font-size:xx-large;text-align:center;background:#f5f7f9;']],
-                [['innerHTML', '<p>Unresolved</p><p>' + unresolved.length + '</p>'], ['onclick', () => renderTickets(unresolved, ' Unresolved')]]);
-            let col2 = createDomElement('div', homePage, [['class', 'col-6  p-5']]);
-            createDomElement('div', col2, [['class', 'card text-info'], ['style', 'font-size:xx-large;text-align:center;background:#f5f7f9;']],
-             [['innerHTML', '<p>Open</p><p>' + open.length + '</p>'], ['onclick', () => renderTickets(open, ' Open')]]);
-            let col3 = createDomElement('div', homePage, [['class', 'col-6 p-5']]);
-            createDomElement('div', col3, [['class', 'card text-danger'], ['style', 'font-size:xx-large;text-align:center;background:#f5f7f9;']],
-             [['innerHTML', '<p>Overdue</p><p>' + overdue.length + '</p>'], ['onclick', () => renderTickets(overdue, ' Overdue')]]);
-            let col4 = createDomElement('div', homePage, [['class', 'col-6 p-5']]);
-            createDomElement('div', col4, [['class', 'card text-warning'], ['style', 'font-size:xx-large;text-align:center;background:#f5f7f9;']],
-             [['innerHTML', '<p>On Hold</p><p>' + onHold.length + '</p>'], ['onclick', () => renderTickets(onHold, ' On Hold')]]);
+            createDomElement('h1', homePage, [['class', 'col-12 p-5']], [['textContent', 'OVERVIEW']]);
+            let col1 = createDomElement('div', homePage, [['class', 'col-md-6 p-5']]);
+            createDomElement('div', col1, [['class', 'bg-primary border rounded'], ['style', 'font-size:xx-large;text-align:center;background:#f5f7f9;']],
+                [['innerHTML', '<a href="#listTickets" style="color:#212529;">Unresolved Tickets</a><p>' + unresolved.length + '</p>'], ['onclick', () => renderTickets(unresolved, ' Unresolved')]]);
+            let col2 = createDomElement('div', homePage, [['class', 'col-md-6  p-5']]);
+            createDomElement('div', col2, [['class', 'bg-info border rounded'], ['style', 'font-size:xx-large;text-align:center;background:#f5f7f9;']],
+             [['innerHTML', '<a href="#listTickets" style="color:#212529;">Open Tickets</a><p>' + open.length + '</p>'], ['onclick', () => renderTickets(open, ' Open')]]);
+            let col3 = createDomElement('div', homePage, [['class', 'col-md-6 p-5']]);
+            createDomElement('div', col3, [['class', 'bg-danger border rounded'], ['style', 'font-size:xx-large;text-align:center;background:#f5f7f9;']],
+             [['innerHTML', '<a href="#listTickets" style="color:#212529;">Overdue Tickets</a><p>' + overdue.length + '</p>'], ['onclick', () => renderTickets(overdue, ' Overdue')]]);
+            let col4 = createDomElement('div', homePage, [['class', 'col-md-6 p-5']]);
+            createDomElement('div', col4, [['class', 'bg-warning border rounded'], ['style', 'font-size:xx-large;text-align:center;background:#f5f7f9;']],
+             [['innerHTML', '<a href="#listTickets" style="color:#212529;">On Hold Tickets</a><p>' + onHold.length + '</p>'], ['onclick', () => renderTickets(onHold, ' On Hold')]]);
 
         })
         .catch((err) => console.log(err))
 }
-// let emptyDiv = createDomElement('div', homePage, [['class', 'col-md-3']]);
-// let navDivTickets = createDomElement('div', homePage, [['class', 'col-md-2']]);
-// let tickets = createDomElement('button', navDivTickets, [['class', 'btn btn-primary']], [['onclick', renderTickets], ['textContent', 'Show tickets!']]);
-// let navDivContacts = createDomElement('div', homePage, [['class', 'col-md-2']]);
-// let contacts = createDomElement('button', navDivContacts, [['class', 'btn btn-primary']], [['onclick', renderContacts], ['textContent', 'Show contacts!']]);
-// let navDivAdd = createDomElement('div', homePage, [['class', 'col-md-2']]);
-// let addContact = createDomElement('button', navDivAdd, [['class', 'btn btn-primary']], [['onclick', () => renderContact()], ['textContent', 'Add new contact!']]);
 
 //loading
-let loaderDiv = createDomElement('div', loading, [['class', "d-flex justify-content-center"], ['style', 'height:50vh']]);
+let loaderDiv = createDomElement('div', loading, [['class', "d-flex justify-content-center"], ['style', 'height:50vh;margin-top:100px']]);
 let spinnerBorder = createDomElement('div', loaderDiv, [['class', "spinner-border"], ['role', "status"]]);
 createDomElement('span', spinnerBorder, [['class', "sr-only"]], [['textContent', 'Loading...']]);
 
@@ -109,7 +112,8 @@ function listAllTickets(data = null, filterName = '') {
         listTickets.removeChild(listTickets.lastChild);
     }
     if (data === null) {
-        createDomElement('p', listTickets, [['class', 'col-12']], [['textContent', 'All Tickets:']])
+        createDomElement('p', listTickets, [['class', 'col-12']],
+        [['innerHTML', '<h3 style="text-align:center"><span class="text-light rounded">All Tickets</span></h3>']]);
         getData(urlTickets + '?include=description')
             .then((ticketsData) => {
                 processTicketsData(ticketsData);
@@ -117,7 +121,8 @@ function listAllTickets(data = null, filterName = '') {
             .catch(err => console.log(err))
     }
     else {
-        createDomElement('p', listTickets, [['class', 'col-12']], [['textContent', 'Tickets filtered by: ' + filterName]])
+        createDomElement('div', listTickets, [['class', 'col-12']],
+         [['innerHTML', '<h3 style="text-align:center"><span class="text-light rounded">'+ filterName + ' Tickets</span></h3>']]);
         processTicketsData(data);
     }
 }
@@ -141,7 +146,7 @@ function processTicketsData(ticketsData) {
                     createDomElement('td', tbodyrowT, [], [['textContent', entry]]);
                 })
                 let priorityCell = createDomElement('td', tbodyrowT);
-                let prioritySelect = createDomElement('select', priorityCell, [], [['onchange', (event) => updatePriority(event, val.id)]]);
+                let prioritySelect = createDomElement('select', priorityCell, [['class', 'custom-select'], ['style', 'width:auto']], [['onchange', (event) => updatePriority(event, val.id)]]);
                 for (let j = 1; j < priorities.length; j++) {
                     if (j === val.priority) {
                         createDomElement('option', prioritySelect, [['selected', 'selected']], [['textContent', priorities[j]]]);
@@ -151,7 +156,7 @@ function processTicketsData(ticketsData) {
                     }
                 }
                 let statusCell = createDomElement('td', tbodyrowT);
-                let statusSelect = createDomElement('select', statusCell, [], [['onchange', (event) => updateStatus(event, val.id)]]);
+                let statusSelect = createDomElement('select', statusCell, [['class', 'custom-select'], ['style', 'width:auto']], [['onchange', (event) => updateStatus(event, val.id)]]);
                 for (let j = 2; j < statuses.length; j++) {
                     if (j === val.status) {
                         createDomElement('option', statusSelect, [['selected', 'selected']], [['textContent', statuses[j]]]);
@@ -183,6 +188,8 @@ function listAllContacts() {
     while (listContacts.firstChild) {
         listContacts.removeChild(listContacts.lastChild);
     }
+    createDomElement('p', listContacts, [['class', 'col-12']],
+        [['innerHTML', '<h3 style="text-align:center"><span class="text-light">Contacts</span></h3>']]);
     let tableC = createDomElement('table', listContacts, [['class', 'table']]);
     let theadC = createDomElement('thead', tableC);
     let tHeadRowC = createDomElement('tr', theadC);
@@ -235,13 +242,13 @@ function editContact(id = "") {
     while (singleContact.firstChild) {
         singleContact.removeChild(singleContact.lastChild);
     }
-    let form = createDomElement('form', singleContact, [], [['onsubmit', (event) => submitContact(event, id)]]);
+    let form = createDomElement('form', singleContact, [['style','padding-left:20px']], [['onsubmit', (event) => submitContact(event, id)]]);
     let formFields = [['Full Name', 'name'], ['Title', 'job_title'], ['Address', 'address'], ['Email Address', 'email'], ['Phone Number', 'phone'], ['Facebook ID', 'facebook_id'], ['Twitter ID', 'twitter_id']];
     let child = 0;
     formFields.forEach((val) => {
         let formGroup = createDomElement('div', form, [['class', 'form-group']]);
         let label = createDomElement('label', formGroup, [['for', val[1]], ['class', "col-form-label"]], [['textContent', val[0]]]);
-        let input = createDomElement('input', formGroup, [['type', 'text'], ['class', 'form-control'], ['id', val[1]]]);
+        let input = createDomElement('input', formGroup, [['type', 'text'], ['class', 'form-control'], ['id', val[1]], ['style', 'width:auto;']]);
         if (val[1] === 'name' || val[1] === 'email') {
             input.setAttribute('required', 'required');
             if (val[1] === 'email') {
