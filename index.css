@@ -1,3 +1,20 @@
 .current {
     color: #2323FF !important;
 }
+
+.adjust-container {
+    margin:0px 0px 0px 64px;
+    padding:0px;
+    height:100vh;
+    max-width:2000px;
+    width:auto;
+    background:gray;
+}
+
+.sidebar {
+    background:black;
+    position:fixed;
+    width:64px;
+    height:100%;
+    z-index:900
+}
